@@ -1,0 +1,52 @@
+MongoDB shell version v3.4.23
+connecting to: mongodb://127.0.0.1:27017
+MongoDB server version: 3.4.23
+
+> db.createCollection('order');
+{ "ok" : 1 }
+
+> db.order.insert({'cust_id':'A123','amt':500});
+WriteResult({ "nInserted" : 1 })
+> db.order.insert({'cust_id':'A123','amt':700});
+WriteResult({ "nInserted" : 1 })
+> db.order.insert({'cust_id':'B123','amt':900});
+WriteResult({ "nInserted" : 1 })
+
+> db.order.find();
+
+{ "_id" : ObjectId("495bc7caf958f4dec9cac573"), "cust_id" : "A123", "amt" : 500 }
+{ "_id" : ObjectId("495bc7d2f958f4dec9cac574"), "cust_id" : "A123", "amt" : 700 }
+{ "_id" : ObjectId("495bc7d8f958f4dec9cac575"), "cust_id" : "B123", "amt" : 900 }
+
+> var mapfunction=function()
+                           {
+                            emit(this.cust_id,this.amt)
+                           };
+
+> var reducefunction=function(cust_id,price)
+                               {
+                                return Array.sum(price);
+                               };
+
+> db.order.mapReduce(mapfunction,reducefunction,
+                               {
+                                out:'result'
+                               }
+                                );
+{
+        "result" : "result",
+        "timeMillis" : 787,
+        "counts" : {
+                "input" : 3,
+                "emit" : 3,
+                "reduce" : 1,
+                "output" : 2
+        },
+        "ok" : 1
+}
+
+> db.result.find();
+
+{ "_id" : "A123", "value" : 1200 }
+{ "_id" : "B123", "value" : 900 }
+>
